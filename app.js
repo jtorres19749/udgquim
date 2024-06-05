@@ -21,7 +21,7 @@ const adminRoutes = require('./routes/admin');
 //const shopRoutes = require('./routes/shop');
 
 // app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json())
 
 app.use((req, res, next) => {
@@ -34,6 +34,14 @@ app.use((req, res, next) => {
 });
 
 app.use('/api', adminRoutes);
+
+app.get('/status', (req, res, next) => {
+  res.status(200).json({
+    status: 'Version 1.0.0',
+    comment: 'Primera version liberada'
+  })
+})
+
 // app.use(shopRoutes);
 app.use(errorController.get404);
 
