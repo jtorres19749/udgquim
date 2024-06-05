@@ -1,4 +1,5 @@
 const path = require('path');
+require('dotenv').config();
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -11,7 +12,7 @@ const Carrera = require('./models/carrera');
 const Estudiante = require('./models/estudiante');
 
 const app = express();
-
+ 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 app.use(cors())
@@ -36,15 +37,15 @@ app.use('/api', adminRoutes);
 // app.use(shopRoutes);
 app.use(errorController.get404);
 
-
+console.log(process.env.CONNECTION_STRING);
 mongoose
   // localhost 
   // 'mongodb://127.0.0.1:27017/myapp',
   // remote
   // 'mongodb+srv://jtorresadmin:udg2024@cluster0.nmxcisr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', 
-
+  
   .connect(
-    'mongodb://127.0.0.1:27017/myapp', 
+    process.env.CONNECTION_STRING, 
     { useNewUrlParser: true, useUnifiedTopology: true,  useFindAndModify: false , dbName: 'quimica'},
   )
   .then(result => {
@@ -98,7 +99,7 @@ mongoose
         // update end -------------------------------------------------------------------------------------------------------------------------
 
 
-    app.listen(3000);
+    app.listen(process.env.PORT);
   })
   .catch(err => {
     console.log(err);
