@@ -33,6 +33,7 @@ router.delete('/user', userController.deletetUser);
 //reports 
 router.get('/reports', rptController.getReports);  
 router.post('/updaterpt', rptController.updaterpt);  
+router.get('/importregs', rptController.getImportRegs);
 
 //config
 router.get('/setting', settingController.getSetting );  
@@ -42,6 +43,7 @@ router.put('/setting', settingController.setSetting );
 router.post('/importSGRACAD', importController.importSGRACAD);  
 router.post('/importConstancia', importController.importConstancia);  
 router.post('/importFicha', importController.importFicha);  
+router.delete('/importregs', importController.delImportRegs);  
 
 router.delete('/deletefromimport', importController.deletefromimport);  
 router.get('/importfromsiauu', importController.importfromsiauu);  

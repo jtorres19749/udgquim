@@ -275,6 +275,18 @@ exports.deletefromimport = (req, res, next) => {
   };
 }
 
+exports.delImportRegs = (req, res, next) => {
+  console.log(`delImportRegs`);
+  importdetail.deleteMany()
+    .then(response => {
+      console.log(response );
+      res.status(200).json({
+        status: 'success',
+        data: response
+      });
+    })
+    .catch(err => console.log(err));
+};
 
 
 exports.importfromsiauu = (req, res, next) => {

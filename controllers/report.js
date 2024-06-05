@@ -7,6 +7,8 @@ var bcrypt = require('bcryptjs');
 const Report = require('../models/report');
 const Estudiante = require('../models/estudiante');
 const Carrera = require('../models/carrera');
+const {importdata, importdetail} = require('../models/import');
+
 const User = require('../models/user');
 const Log = require('../models/log');
 
@@ -55,7 +57,7 @@ exports.updaterpt = (req, res, next) => {
               
             })
             break;
-            case 'Total carreras':
+          case 'Total carreras':
               Carrera.count({}, function( err, count){
                 rpt.title = count;
                 console.log( "Number of carreras:", count );
@@ -67,7 +69,21 @@ exports.updaterpt = (req, res, next) => {
                                 
 
               })
+              break
               
+          case 'Pendientes por importar':
+              importdetail.count({}, function( err, count){
+                rpt.title = count;
+                console.log( "Pendientes por importar:", count );
+                rpt.save();
+                res.status(200).json({
+                  status: 'success',
+                  data: rpt
+                });
+                                
+
+              })  
+              break
               
           }
         
@@ -96,10 +112,30 @@ exports.updaterpt = (req, res, next) => {
     })
     res.end; 
   }
+}; 
+
+
   
-  
+// todos los estudiantes sin carreras
+exports.getImportRegs = (req, res, next) => {
+  importdetail.find()
+    // .select('title price -_id')
+    // .populate('userId', 'name')
+    .then(students => {
+      console.log('getImportRegs');
+      res.status(200).json({
+        status: 'success',
+        results: students.length,
+        data:{
+          importregs:students
+        }
+      });
+    })
+    .catch(err => console.log(err));
 };
 
+
+  
   
   
   
