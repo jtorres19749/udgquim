@@ -59,6 +59,10 @@ const degreeSchema = new Schema({
     type: Number,
     required: false
   },
+  correoInstitucional: {
+    type: String,
+    required: false
+  },
   creditosMaximos: {
     type: Number,
     required: false
@@ -284,7 +288,7 @@ const degreeSchema = new Schema({
 });
 
 degreeSchema.pre('validate', function (next) {
-  // console.log('esta intentando actualizar')
+  console.log('esta intentando actualizar-------------------------------------------------------------------')
   this.ultimoCiclo = this.ultimoCiclo.replace('-','');
   this.fecActualizacion = Date.now();
   

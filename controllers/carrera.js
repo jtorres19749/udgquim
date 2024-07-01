@@ -2,6 +2,12 @@ const SGRACAD_ROWSHEADER = 7;
 const SGRACAD_COLUMNS_IN_DATA_ROW = 19; 
 const SGRACAD_COLUMN_SGRACAD = "col-3";
 
+
+
+const SGRACAD_COLUMN_HEADER = "col-1";
+const SGRACAD_COLUMN_CAREER= "col-3";
+const SGRACAD_COLUMN_CREDITS= "col-3";
+
 //SGRACAD Column names in Data Row 
 const SGRACAD_COLUMN_CODIGO = "col-5";
 const SGRACAD_COLUMN_NOMBRE = "col-3";
@@ -9,7 +15,7 @@ const SGRACAD_COLUMN_STATUS= "col-7";
 const SGRACAD_COLUMN_CICLOS= "col-15";
 const SGRACAD_COLUMN_ULTIMOCICLO= "col-17";
 const SGRACAD_COLUMN_CREDITOS= "col-9";
-const SGRACAD_COLUMN_PROMEDIO= "col-9";
+const SGRACAD_COLUMN_PROMEDIO= "col-13";
 const SGRACAD_COLUMN_CREDITOSFALTANTES= "col-11";
 
 const COLUMNA_GENERICA_SUBTITULO = "title_generic_col";
@@ -176,6 +182,7 @@ exports.postBuscaCarreras = (req, res, next) => {
   console.log(find);
 
   try {
+    
     Carrera.find(find, projection, {skip, limit, sort})
     .then(data => { 
       res.set('Access-Control-Allow-Origin', '*');
@@ -206,7 +213,9 @@ exports.postBuscaCarreras = (req, res, next) => {
   
 };
 
-
+function delay(t, val) {
+    return new Promise(resolve => setTimeout(resolve, t, val));
+}
 
 exports.postUser = (req, res, next) => {
   const name = req.body.name.trim();  
@@ -358,6 +367,7 @@ exports.postEstudianteCard = (req, res, next) => {
   // console.log(req.body);
   const data = convertDataEstudianteCard(req.body);
   const filter = { codigo: data.codigo, admision: data.admision};
+  console.log(data);
 
   try {
     // busca la carrera
@@ -414,8 +424,35 @@ exports.postSGRACAD = (req, res, next) => {
 
       Estudiante.findOneAndUpdate(filter, datafields, {new: true, upsert:true})
       .then(estudiante => {
-        console.log(`Se actualizo o dio de alta al estudiante con codigo: ${estudiante.codigo}`);
+
+        let admision = data.admision.replace('-','');
+
+        let filter = { codigo: data.codigo, admision:admision}
+
+        datafields = {
+          codigo: data.codigo,
+          nombre: data.nombre, 
+          status: data.status,
+          ciclos:  data.ciclos,
+          creditos: data.creditos,
+          promedio: data.promedio,
+          creditosFaltantes: data.creditosFaltantes, 
+          actualizadoPorSGRACAD: yyyymmdd(),
+          correoInstitucional: estudiante.correoInstitucional || 'Sin correo asignado.',
+          situacion: data.situacion,
+          centro: data.centro.trim(),
+          admision: data.admision.replace('-',''),
+          carrera: data.carrera.trim(),
+          creditosMinimos: data.creditosMinimos,
+          ultimoCiclo: data.ultimoCiclo.replace('-',''),
+          porcentajeEnCreditos: (data.creditos/data.creditosMinimos)*100,
+          fecha: yyyymmdd()
+        }
+        return Carrera.findOneAndUpdate(filter, datafields, {new: true, upsert:true})
+      .then ((response)=>{
+        console.log(`Se actualizo o dio de alta al estudiante con codigo: ${estudiante.codigo} , correo: ${estudiante.correoInstitucional} creditos: ${data.creditos} `);
       })
+       })
     }
     respondeOk (res);
     
@@ -634,7 +671,7 @@ function convertDataEstudianteConstancia(data) {
 function convertDataEstudianteCard(data) {
     // this is for Boleta de calificaciones
     let jsonData = getData(data);
-    console.log(jsonData);
+    
     let correo = data[1].document[1].data[0].CorreoInstitucional;
     if (correo.indexOf('@')>-1) {
       jsonData["correoInstitucional"] = correo;
@@ -648,22 +685,83 @@ function convertDataEstudianteCard(data) {
       jsonData["suspenciones"] = [];
     }
     jsonData["ingreso"] = convertIngreso(data[1].document[5].data);
-    console.log(jsonData);
     
+
+
+
+
+  let status = ''
+  switch (jsonData.Situacion) {
+    case 'EGRESADO':
+      status =  'EG';
+      break;
+    case 'DESERCION':
+      status =  'DE';
+      break;
+    case 'BAJA POR ART 33':
+      status =  'BC';
+      break;
+    case 'GRADUADO':
+      status =  'GD';
+      break;
+    case 'INACTIVO':
+      status =  'IN';
+      break;
+    case 'TITULADO':
+      status =  'TT';
+      break;
+    case 'BAJA POR ART 35':
+      status =  'B5';
+      break;
+    case 'BAJA VOLUNTARIA':
+      status =  'BV';
+      break;
+    case 'BAJA POR RENUNCIA A DICT':
+      status =  'RD';
+      break;
+    case 'BAJA POR INGRESO OTRA C':
+      status =  'BO';
+      break;
+    case 'BAJA ART 35 CON RETIRO D':
+      status =  'B6';
+      break;
+    case 'ACTIVO':
+      status =  'AC';
+      break;
+    case 'ALUMNO EN ART 34':
+      status =  'B4';
+      break;
+    case 'LICENCIA':
+      status =  'LI';
+      break;
+    case 'TERMINACION DE INTERCAM':
+      status =  'FI';
+      break;
+    case 'BAJA ADMINISTRATIVA':
+      status =  'BA';
+      break;
+    default:
+      status =  'xxx';
+      break;
+    }
+  
     return {
       codigo: jsonData.Codigo,
       nombre: jsonData.Nombre,
       situacion: jsonData.Situacion,
       admision: jsonData.Admision,
       nivel: jsonData.Nivel,
-      ultimoCiclo: jsonData.UltimoCiclo,
+      ultimoCiclo: jsonData.UltimoCiclo.replace('-',''),
       carrera: jsonData.Carrera,
       centro: jsonData.Centro,
       sede: jsonData.Sede,
       correoInstitucional: jsonData.correoInstitucional,
       listaciclos: jsonData.listaciclos,
+      ciclos: jsonData.listaciclos.length,
       suspenciones: jsonData.suspenciones,
-      ingreso: jsonData.ingreso
+      ingreso: jsonData.ingreso,
+      status,
+      fecActualizacion: new Date()
     }
 }
 
@@ -757,32 +855,37 @@ function convertDataSGRACAD(jsonData) {
 
             console.log(`table.data.length: ${table.data.length}   SGRACAD_COLUMN_SGRACAD: ${table.data[1][SGRACAD_COLUMN_SGRACAD]}`);
 
+            // headers common data
+            let centro = table.data[2][SGRACAD_COLUMN_HEADER].substring(8);
+            let admision  = table.data[3][SGRACAD_COLUMN_HEADER].substring(19,25);
+            let carrera = table.data[5][SGRACAD_COLUMN_CAREER];
+            let creditosMinimos = Number(table.data[3][SGRACAD_COLUMN_CREDITS].substring(21,24));
+
+
+
             // sweeps the rest of the records
             for (r=7; r<table.data.length; r++){
               let row = table.data[r];
               // if the row contains the columns to be a row with student data
               let nocolumns = Object.keys(row); 
               if ( nocolumns.length == SGRACAD_COLUMNS_IN_DATA_ROW ) {
-
-                // ahora solo da de alta al estudiante
-                let studentRaw = {
-                  codigo: row[SGRACAD_COLUMN_CODIGO],
-                  nombre: row[SGRACAD_COLUMN_NOMBRE]
-                };
-
-                /* codigo anterior 
+                
                 let studentRaw = {
                   codigo: row[SGRACAD_COLUMN_CODIGO],
                   nombre: row[SGRACAD_COLUMN_NOMBRE],
                   status: row[SGRACAD_COLUMN_STATUS],
+                  situacion: statusToText(row[SGRACAD_COLUMN_STATUS]),
                   ciclos: + row[SGRACAD_COLUMN_CICLOS],
                   ultimoCiclo: row[SGRACAD_COLUMN_ULTIMOCICLO],
                   creditos: + row[SGRACAD_COLUMN_CREDITOS],
                   promedio: + row[SGRACAD_COLUMN_PROMEDIO],
-                  creditosFaltantes: + row[SGRACAD_COLUMN_CREDITOSFALTANTES]
+                  creditosFaltantes: + row[SGRACAD_COLUMN_CREDITOSFALTANTES],
+                  centro,
+                  admision,
+                  carrera,
+                  creditosMinimos
                 };
-                */
-
+                
                 // console.log(studentRaw);
                 data.push(studentRaw);
               }
@@ -793,6 +896,30 @@ function convertDataSGRACAD(jsonData) {
     }
     return data;
 
+}
+
+
+function statusToText(status){
+  status = status.trim();
+  switch (status) {
+    case 'EG': return  'EGRESADO'; break;
+    case 'DE': return 'DESERCION';break;
+    case 'BC': return 'BAJA POR ART 33';break;
+    case 'GD': return 'GRADUADO';break;
+    case 'IN': return 'INACTIVO';break;
+    case 'TT': return 'TITULADO';break;
+    case 'B5': return 'BAJA POR ART 35';break;
+    case 'BV': return 'BAJA VOLUNTARIA';break;
+    case 'RD': return 'BAJA POR RENUNCIA A DICT';break;
+    case 'BO': return 'BAJA POR INGRESO OTRA C';break;
+    case 'B6': return 'BAJA ART 35 CON RETIRO D';break;
+    case 'AC': return 'ACTIVO';break;
+    case 'B4': return 'ALUMNO EN ART 34';break;
+    case 'LI': return 'LICENCIA';break;
+    case 'FI': return 'TERMINACION DE INTERCAM';break;
+    case 'BA': return 'BAJA ADMINISTRATIVA';break;
+    default: return 'xxx';
+    }
 }
 
 function mandaError(res, err){

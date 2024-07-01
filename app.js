@@ -45,7 +45,7 @@ app.get('/status', (req, res, next) => {
 // app.use(shopRoutes);
 app.use(errorController.get404);
 
-console.log(process.env.CONNECTION_STRING);
+//console.log(process.env.CONNECTION_STRING);
 mongoose
   // localhost 
   // 'mongodb://127.0.0.1:27017/myapp',
