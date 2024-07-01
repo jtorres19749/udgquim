@@ -1,6 +1,6 @@
 {
   "name": "udg-quimica-service",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Servicio para grabar en MongoDB",
   "main": "app.js",
   "scripts": {
